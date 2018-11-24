@@ -25,21 +25,33 @@ def ensureResultValidity(result):
 				print('err')
 
 
+# get best vector from all vector tries (2pi)
 def pickVector(base, final, step):
-	result = []
-	baseTmp = base
+	finalVector = 0
 
-	# sort
-	for i in range(int(2 * math.pi * 100)):
-		baseTmp.sort(key = lambda p: math.cos(i) * p.x + math.sin(i) * p.y)
-		optiGrap(baseTmp, result)
+	for i in range(1, step):
+		result = []
+		baseTmp = base
+
+		vector = (2 * math.pi)/step * i
+
+		# sort
+		sortByVector(baseTmp, vector)
+		
+		optiGraph(baseTmp, result)
+		
+		# keep best result
 		if len(result) > len(final):
 			final = result
+			finalVector = vector
 
-	return final
+	return finalVector
 
+def sortByVector(list, vector):
+	list.sort(key = lambda p: math.cos(vector) * p.x + math.sin(vector) * p.y)
 
-def optiGrap(base, result):
+# get a result sample according to one vector
+def optiGraph(base, result):
 	while base:
 		cur = base[0]
 		result.append(cur)
@@ -51,6 +63,33 @@ def optiGrap(base, result):
 
 		base = temp
 
+def localSearch(base, result, r):
+	1 + 1
+
+def getNear(base, r):
+	# near = { p: [ q for q in base if p.dist(q) <= r and p != q ] for p in base }
+	
+	cells = {}
+	for p in base:
+		key = (int(p.x/r), int(p.y/r))
+		if (key in cells):
+			cells[key].append(p)
+		else:
+			cells[key] = [p]
+
+	near = {}
+	for p in base:
+		key = (int(p.x/r), int(p.y/r))
+		cell = cells[key]
+		
+		near[p] = []
+		for x in [-1,0,1]:
+			for y in [-1,0,1]:
+				for elem in cells.get((key[0] + x, key[1] + y), []):
+					if p.dist(elem) <= r:
+						near[p].append(elem)
+
+	return near
 
 # Read stdin
 nbr = int(input())
@@ -60,10 +99,19 @@ r = float(input())
 base = [Point(input().split(' ')) for i in range(nbr)]
 final = []
 
-final = pickVector(base, final, 1)
+# Get final
+vector = pickVector(base, final, 10)
 
+sortByVector(base, vector)
+optiGraph(base, final)
 
-# print result
+print(vector)
+
+#localSearch(base, final, r)
+near = getNear(base, r)
+print(near)
+
+# display result
 print(len(final))
 #[print(e) for e in result]
 
