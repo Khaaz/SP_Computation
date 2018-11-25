@@ -80,7 +80,6 @@ def getNear(base, r):
 	near = {}
 	for p in base:
 		key = (int(p.x/r), int(p.y/r))
-		cell = cells[key]
 		
 		near[p] = []
 		for x in [-1,0,1]:
@@ -99,7 +98,7 @@ r = float(input())
 base = [Point(input().split(' ')) for i in range(nbr)]
 final = []
 
-# Get final
+# Get best vector
 vector = pickVector(base, final, 10)
 
 sortByVector(base, vector)
