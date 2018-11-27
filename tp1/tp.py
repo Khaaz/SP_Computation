@@ -170,8 +170,6 @@ else :
 	bins = optiBinpackWOFull(bins, capacity, startTime)
 
 
-
-
 # Print
 print(len(bins))
 for b in bins:

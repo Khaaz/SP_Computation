@@ -66,6 +66,7 @@ def optiGraph(base, result):
 def localSearch(base, result, r):
 	1 + 1
 
+# Use a grid to get near points
 def getNear(base, r):
 	# near = { p: [ q for q in base if p.dist(q) <= r and p != q ] for p in base }
 	
