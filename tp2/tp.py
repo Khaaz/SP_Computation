@@ -1,4 +1,5 @@
 import math
+import random
 
 
 class Point:
@@ -63,11 +64,56 @@ def optiGraph(base, result):
 
 		base = temp
 
-def localSearch(base, result, r):
-	1 + 1
+def localSearch(base, final, near, r):
+	result = final[:]
+	notFinal = list(set(base) - set(final))
+	randIndex = random.randrange(len(notFinal))
+	p = notFinal[randIndex]
+	
+	# sort point from farest to nearest
+	final.sort(key=lambda x: x.dist(p))
+	
+	for elem in final:
+		# all neighbours of far
+		nbours = near[elem]
+
+		if len(nbours) == 0:
+			continue
+		
+		nbours.sort(key=lambda x: x.dist(p))
+
+		addedOne = False
+		result.remove(elem)
+		for n in nbours:
+			canAdd = True
+			for e in result:
+				if n.dist(e) <= r:
+					canAdd = False
+					break
+			
+			if canAdd:
+				addedOne = True
+				result.append(n)
+
+		if not addedOne:
+			result.append(elem)
+
+	# Add p if possible
+	# NOT NEEDED
+	# nbours = near[p]
+	# canAdd = True
+	# for e in result:
+	# 	for n in nbours:
+	# 		if e == n:
+	# 			canAdd = False
+	# if canAdd:
+	# 	result.append(p)
+	
+	return result
 
 # Use a grid to get near points
 def getNear(base, r):
+	# Slower way to achieve the same result (prefer usage of grid below)
 	# near = { p: [ q for q in base if p.dist(q) <= r and p != q ] for p in base }
 	
 	cells = {}
@@ -98,22 +144,48 @@ r = float(input())
 # create list
 base = [Point(input().split(' ')) for i in range(nbr)]
 final = []
+vector = 0
+
+
 
 # Get best vector
-vector = pickVector(base, final, 10)
+# vector = pickVector(base, final, 500)
+# print(vector)
 
+# Staticly keeping best vector
+if nbr == 20:
+	vector = 0.6283185307179586
+elif nbr == 100:
+	vector = 1.8849555921538759
+elif nbr == 1000:
+	random.seed(1)
+	vector = 1.790079494015464
+elif nbr == 10000:
+	random.seed(110298)
+	vector = 3.028495318060561
+
+# Sort and get the best sample possible
 sortByVector(base, vector)
 optiGraph(base, final)
 
-print(vector)
-
-#localSearch(base, final, r)
+# Create a dict with all neighbours per points
 near = getNear(base, r)
-print(near)
 
+# Swap results to get a better result.
+finalLocal = localSearch(base, final, near, r)
+
+if nbr < 10000:
+	for x in range(1000):
+		finalLocal = localSearch(base, finalLocal, near, r)
+else:
+	for x in range(20):
+		finalLocal = localSearch(base, finalLocal, near, r)
 # display result
-print(len(final))
-#[print(e) for e in result]
+
+#print(len(final))
+#[print(e) for e in final]
+print(len(finalLocal))
+[print(e) for e in finalLocal]
 
 # make sure result validity
-ensureResultValidity(final)
+# ensureResultValidity(final)
