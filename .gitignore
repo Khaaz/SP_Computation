@@ -7,6 +7,7 @@ tp1/report.txt
 
 # tp2
 *.out2
+*.out2.svg
 tp2/report.txt
 
 # tp3

@@ -174,16 +174,15 @@ near = getNear(base, r)
 # Swap results to get a better result.
 finalLocal = localSearch(base, final, near, r)
 
-if nbr < 10000:
+if nbr == 1000:
 	for x in range(1000):
 		finalLocal = localSearch(base, finalLocal, near, r)
 else:
-	for x in range(20):
+	for x in range(30):
 		finalLocal = localSearch(base, finalLocal, near, r)
-# display result
 
-#print(len(final))
-#[print(e) for e in final]
+
+# display result
 print(len(finalLocal))
 [print(e) for e in finalLocal]
 

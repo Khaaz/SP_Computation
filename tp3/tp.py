@@ -81,33 +81,37 @@ class Point:
 	def __repr__(self):
 		return "(" + str(self.x) + "," + str(self.y) + ")"
 
-	def nextNear(self, base):
-		nearDist = 0
-		nearP = 0
-		for p in base:
-			if p.mark:
-				continue
-			dist = self.dist(p)
-			if nearDist == 0 or dist < nearDist:
-				nearDist = dist
-				nearP = p
+# Calculate full dist inthe list + last -> first dist as well
+# AKA whole hull dist
+def calculateFullDist(base):
+	
+	dist = 0
+	tot = len(base) - 1
+	for x in range(tot):
+		if x == tot:
+			# dist last -> first
+			dist += base[x].dist(base[0])
+		else:
+			dist += base[x].dist(base[x + 1])
+	
+	return dist
+	
+def sumDist(base, first, second):
+	if len(base) == 0:
+		return 0
+	nextP = base.pop(0)
+	return first.dist(second) + sumDist(base, second, nextP)
 
-		if nearP == 0:
-			return []
-
-		nearP.mark = True
-		return [nearP]
-
-
-def getDist(A, B, C):
+# Dist added if adding the point C
+def addedDist(A, B, C):
 	return A.dist(C) + C.dist(B) - A.dist(B)
 
 # base = all points NOT in current hull
-def getSmallerDist(A, B, base):
-	smallerDist = 0;
+def getSmallerDist(A, B, free):
+	smallerDist = 0
 	nearP = 0
-	for e in base:
-		dist = getDist(A, B, e)
+	for e in free:
+		dist = addedDist(A, B, e)
 		if smallerDist == 0 or dist < smallerDist:
 			smallerDist = dist
 			nearP = e
@@ -121,23 +125,52 @@ def getSmallerDist(A, B, base):
 def createAllNeighbours(hull, free):
 	neighbours = dict()
 	for index in range(len(hull) - 1):
-		neighbours[(hull[index], hull[index + 1])] = createNeighbour(hull[index], hull[index + 1], free)
+		createNeighbour(neighbours, hull[index], hull[index + 1], free)
 
-	neighbours[(hull[0], hull[len(hull) - 1])] = createNeighbour(hull[0], hull[len(hull) - 1], free)
+	createNeighbour(neighbours, hull[len(hull) - 1], hull[0], free)
 	return neighbours
 
-def createNeighbour(A, B, free):
-	return getSmallerDist(A, B, free)
+# Create one entry in neighbours dict for two points
+# (A, B) => (dist, Point)
+def createNeighbour(nb, A, B, free):
+	nb[(A, B)] = getSmallerDist(A, B, free)
 
-def addPoint(hull):
-	# parcours dict
-	# find lowest dist
-	# ajoute point
-	# supprime old association of dict
+# Add one point to convex hull
+def addPoint(hull, free, near):
+	
+	# Find smaller dist/point to add
+	segment = 0
+	dist = 0
+	point = 0
+	for key, value in near.items():
+		if dist == 0 or value[0] < dist:
+			segment = key
+			dist = value[0]
+			point = value[1]
+
+	# remove old entry from dict
+	del near[segment]
+
+	# add new point to hull
+	index = hull.index(segment[0])
+	hull.insert(index, point)
+	
+	# remove old point from free
+	free.remove(point)
+
+	# End if free is empty	
+	if len(free) == 0:
+		return
+	
 	# ajoute 2 nouvelles association
-	# check if another el in dict had this point
-	# if yes recalculate
-	1 + 1
+	createNeighbour(near, segment[0], point, free)
+	createNeighbour(near, point, segment[1], free)
+
+	# check if another element in dict has this point and recalculate
+	for key, value in near.items():
+		if value[1] == point:
+			createNeighbour(near, key[0], key[1], free)
+	
 
 # Read stdin
 nbr = int(input())
@@ -148,40 +181,18 @@ base = [Point(input().split(' ')) for i in range(nbr)]
 #base = [tuple(float(i) for i in input().split(' ')) for i in range(nbr)]
 
 hull = chP(base)
-# free = [ x for x in base if x not in hull ]
+#free = [ x for x in base if x not in hull ]
 free = set(base) - set(hull)
 
 neighbours = createAllNeighbours(hull, free)
+# Add point until all point are in the hull
+while free:
+	addPoint(hull, free, neighbours)
 
-print(neighbours)
 # Print
+# nbr de point
 print(nbr)
-print(base)
-#[print(e) for e in final]
-
-
-
-
-# def buildNextList(base, p):
-# 	pNext = p.nextNear(base)
-# 	if len(pNext) == 0:
-# 		return []
-# 	return pNext + buildNextList(base, p)
-
-# def nextNearSearch(base):
-# 	randIndex = random.randrange(len(base))
-# 	cur = base[randIndex]
-# 	cur.mark = True
-# 	return [cur] + buildNextList(base, cur)
-
-# def distFullRoute(base):
-# 	fullRoute = base[:]
-# 	first = fullRoute.pop(0)
-# 	fullDist = sumDist(fullRoute, first, fullRoute[1])
-# 	return fullDist + first.dist(base[len(base)-1])
-
-# def sumDist(base, p, curP):
-# 	if len(base) == 0:
-# 		return 0
-# 	nextP = base.pop(0)
-# 	return p.dist(curP) + sumDist(base, curP, nextP)
+# distance tot(with last -> first dist)
+print(calculateFullDist(hull[:]))
+# all point in order
+[print(e) for e in hull]
