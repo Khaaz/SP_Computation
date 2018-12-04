@@ -60,8 +60,8 @@ def chP(v):
 				hull.pop()
 			hull.append(p)
 		return hull
-	top = halfch(sorted(v, key=lambda p: p.x))
-	bottom = halfch(sorted(v, key=lambda p: p.x, reverse=True))
+	top = halfch(sorted(v, key=lambda p: (p.x, p.y)) )
+	bottom = halfch(sorted(v, key=lambda p: (p.x, p.y), reverse=True))
 	return top[0:-1] + bottom[0:-1]
 
 class Point:
@@ -85,13 +85,15 @@ class Point:
 def calculateFullDist(base):
 	
 	dist = 0
-	tot = len(base)
-	for x in range(tot):
-		if x == tot - 1:
-			# dist last -> first
-			dist += base[x].dist(base[0])
-		else:
-			dist += base[x].dist(base[x + 1])
+	# tot = len(base)
+	# for x in range(tot):
+	# 	if x == tot - 1:
+	# 		# dist last -> first
+	# 		dist += base[x].dist(base[0])
+	# 	else:
+	# 		dist += base[x].dist(base[x + 1])
+	for index in range(len(base)):
+		dist += base[index - 1].dist(base[index])
 	
 	return dist
 
@@ -116,14 +118,17 @@ def getSmallerDist(A, B, free):
 
 # create dict that associate pair of point with nearest point
 def createAllNeighbours(hull, free):
-	neighbours = dict()
-	tot = len(hull)
-	for index in range(tot):
-		if index == tot - 1:
-			# last -> first
-			createNeighbour(neighbours, hull[len(hull) - 1], hull[0], free)
-		else:
-			createNeighbour(neighbours, hull[index], hull[index + 1], free)
+	neighbours = {}
+	# tot = len(hull)
+	# for index in range(tot):
+	# 	if index == tot - 1:
+	# 		# last -> first
+	# 		createNeighbour(neighbours, hull[len(hull) - 1], hull[0], free)
+	# 	else:
+	# 		createNeighbour(neighbours, hull[index], hull[index + 1], free)
+	for index in range(len(hull)):
+		createNeighbour(neighbours, hull[index - 1], hull[index], free)
+
 	return neighbours
 
 # Create one entry in neighbours dict for two points
@@ -145,7 +150,7 @@ def addPoint(hull, free, near):
 			point = value[1]
 
 	# remove old entry from dict
-	del near[segment]
+	del near[segment]	
 
 	# add new point to hull
 	index = hull.index(segment[0])
