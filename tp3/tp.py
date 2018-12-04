@@ -67,7 +67,6 @@ def chP(v):
 class Point:
 	x = 0
 	y = 0
-	mark = False
 	def __init__(self, arr):
 		self.x = float(arr[0])
 		self.y = float(arr[1])
@@ -86,21 +85,15 @@ class Point:
 def calculateFullDist(base):
 	
 	dist = 0
-	tot = len(base) - 1
+	tot = len(base)
 	for x in range(tot):
-		if x == tot:
+		if x == tot - 1:
 			# dist last -> first
 			dist += base[x].dist(base[0])
 		else:
 			dist += base[x].dist(base[x + 1])
 	
 	return dist
-	
-def sumDist(base, first, second):
-	if len(base) == 0:
-		return 0
-	nextP = base.pop(0)
-	return first.dist(second) + sumDist(base, second, nextP)
 
 # Dist added if adding the point C
 def addedDist(A, B, C):
@@ -124,10 +117,13 @@ def getSmallerDist(A, B, free):
 # create dict that associate pair of point with nearest point
 def createAllNeighbours(hull, free):
 	neighbours = dict()
-	for index in range(len(hull) - 1):
-		createNeighbour(neighbours, hull[index], hull[index + 1], free)
-
-	createNeighbour(neighbours, hull[len(hull) - 1], hull[0], free)
+	tot = len(hull)
+	for index in range(tot):
+		if index == tot - 1:
+			# last -> first
+			createNeighbour(neighbours, hull[len(hull) - 1], hull[0], free)
+		else:
+			createNeighbour(neighbours, hull[index], hull[index + 1], free)
 	return neighbours
 
 # Create one entry in neighbours dict for two points
@@ -153,7 +149,7 @@ def addPoint(hull, free, near):
 
 	# add new point to hull
 	index = hull.index(segment[0])
-	hull.insert(index, point)
+	hull.insert(index + 1, point)
 	
 	# remove old point from free
 	free.remove(point)
@@ -185,6 +181,7 @@ hull = chP(base)
 free = set(base) - set(hull)
 
 neighbours = createAllNeighbours(hull, free)
+
 # Add point until all point are in the hull
 while free:
 	addPoint(hull, free, neighbours)
@@ -193,6 +190,6 @@ while free:
 # nbr de point
 print(nbr)
 # distance tot(with last -> first dist)
-print(calculateFullDist(hull[:]))
+print(calculateFullDist(hull))
 # all point in order
 [print(e) for e in hull]
