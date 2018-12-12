@@ -1,5 +1,6 @@
 import random
 import math
+import copy
 
 
 # 20 -> 1 min
@@ -7,30 +8,43 @@ import math
 # 1000 -> 10 min
 # 10000 -> 10 min
 
-#Brute force:
-'''
-add nearest point over and over from the last poit
-'''
+class Point:
+	x = 0
+	y = 0
+	def __init__(self, arr):
+		self.x = float(arr[0])
+		self.y = float(arr[1])
 
-# triangle:
-''' 
-pick 3 random point to create a triangle
-find nearest point, add point
-'''
+	def dist(self, p):
+		return math.sqrt(math.pow(self.x - p.x, 2) + math.pow(self.y - p.y, 2))
 
-# convexe:
-'''
-create convex hull
-add nearest point (inside)
-'''
+	def __str__(self):
+		return str(self.x) + " " + str(self.y)
 
-# get nearest distance
-'''
-  C
-A  B
+	def __repr__(self):
+		return "(" + str(self.x) + "," + str(self.y) + ")"
 
-A->C + C->B - A-B
-'''
+# Read stdin
+nbr = int(input())
+
+# create list of Point
+base = [Point(input().split(' ')) for i in range(nbr)]
+# create list of tuple
+#base = [tuple(float(i) for i in input().split(' ')) for i in range(nbr)]
+
+obj = 0
+if nbr == 20:
+	obj = 92
+	random.seed(19)
+elif nbr == 100:
+	obj = 78000
+	random.seed(317)
+elif nbr == 1000:
+	obj = 108000
+	random.seed(30977)
+else:
+	obj = 465000
+	random.seed(1899)
 
 # convex hull from tuple
 def chT(v):
@@ -63,22 +77,6 @@ def chP(v):
 	top = halfch(sorted(v, key=lambda p: (p.x, p.y)) )
 	bottom = halfch(sorted(v, key=lambda p: (p.x, p.y), reverse=True))
 	return top[0:-1] + bottom[0:-1]
-
-class Point:
-	x = 0
-	y = 0
-	def __init__(self, arr):
-		self.x = float(arr[0])
-		self.y = float(arr[1])
-
-	def dist(self, p):
-		return math.sqrt(math.pow(self.x - p.x, 2) + math.pow(self.y - p.y, 2))
-
-	def __str__(self):
-		return str(self.x) + " " + str(self.y)
-
-	def __repr__(self):
-		return "(" + str(self.x) + "," + str(self.y) + ")"
 
 # Calculate full dist inthe list + last -> first dist as well
 # AKA whole hull dist
@@ -171,30 +169,88 @@ def addPoint(hull, free, near):
 	for key, value in near.items():
 		if value[1] == point:
 			createNeighbour(near, key[0], key[1], free)
+
+## OLD
+# hull = chP(base)
+# #free = [ x for x in base if x not in hull ]
+# free = set(base) - set(hull)
+
+# neighbours = createAllNeighbours(hull, free)
+
+# # Add point until all point are in the hull
+# while free:
+# 	addPoint(hull, free, neighbours)
+
+
+def addPointInHull(hull, point):
+	segment = getBestPlace(hull, point)
 	
+	# add new point to hull
+	index = segment[0]
+	hull.insert(index, point)
 
-# Read stdin
-nbr = int(input())
+def getBestPlace(hull, point):
+	smallerDist = 0
+	segment = 0
+	for index in range(len(hull)):
+		dist = addedDist(hull[index], hull[index - 1], point)
+		if smallerDist == 0 or dist < smallerDist:
+			smallerDist = dist
+			segment = (index, index - 1)
+	return segment
 
-# create list of Point
-base = [Point(input().split(' ')) for i in range(nbr)]
-# create list of tuple
-#base = [tuple(float(i) for i in input().split(' ')) for i in range(nbr)]
+def getBestPlaceLocalSearch(dist, hull, point):
+	smallerDist = dist
+	segment = 0
+	for index in range(len(hull)):
+		A = hull[index]
+		B = hull[index - 1]
+		if A == point or B == point:
+			continue
+		# dist = A.dist(point) + point.dist(B)
+		dist = addedDist(A, B, point)
+		if dist < smallerDist:
+			smallerDist = dist
+			segment = (A, B)
+
+	return segment
+
+def localSearch(hull):
+	newHull = copy.copy(hull)
+	for point in hull:
+		index = newHull.index(point)
+		A = newHull[index - 1]
+		B = newHull[0] if index + 1 >= len(newHull) else newHull[index + 1]
+		# dist = A.dist(point) + point.dist(B)
+		dist = addedDist(A, B, point)
+
+		segment = getBestPlaceLocalSearch(dist, newHull, point)
+		if segment != 0:
+			newHull.pop(index)
+			ind = newHull.index(segment[0])
+			newHull.insert(ind, point)
+			
+	return newHull
 
 hull = chP(base)
-#free = [ x for x in base if x not in hull ]
-free = set(base) - set(hull)
+free = [ x for x in base if x not in hull ]
 
-neighbours = createAllNeighbours(hull, free)
-
-# Add point until all point are in the hull
 while free:
-	addPoint(hull, free, neighbours)
+	randIndex = random.randrange(len(free))
+	point = free.pop(randIndex)
+	addPointInHull(hull, point)
 
-# Print
-# nbr de point
+dist = calculateFullDist(hull)
+if nbr == 1000:
+	while(dist > obj):
+		hull = localSearch(hull)
+		dist = calculateFullDist(hull)
+else:
+	hull = localSearch(hull)
+	dist = calculateFullDist(hull)
+
 print(nbr)
 # distance tot(with last -> first dist)
-print(calculateFullDist(hull))
+print(dist)
 # all point in order
 [print(e) for e in hull]

@@ -51,7 +51,7 @@ def process(free, graph, final):
 
 	lowLen = len(low)
 
-	randIndex = random.randrange(len(low))
+	randIndex = random.randrange(lowLen)
 	weak = low[randIndex]
 	
 	neighbours = graph.get(weak)
@@ -112,6 +112,8 @@ def alternateProcess(free, graph, final):
 	low = []
 	for key, value in graph.items():
 		length = len(value)
+		if key not in free:
+			continue
 		if lowest == None or length < lowest:
 			low = [key]
 			lowest = length
@@ -120,7 +122,7 @@ def alternateProcess(free, graph, final):
 
 	lowLen = len(low)
 
-	randIndex = random.randrange(len(low))
+	randIndex = random.randrange(lowLen)
 	weak = low[randIndex]
 	
 	neighbours = graph.get(weak)
@@ -152,11 +154,11 @@ def alternateProcess(free, graph, final):
 			value.remove(strong)
 		except ValueError:
 			pass
-		for elem in dominates:
-			try:
-				value.remove(elem)
-			except ValueError:
-				pass
+		# for elem in dominates:
+		# 	try:
+		# 		value.remove(elem)
+		# 	except ValueError:
+		# 		pass
 			
 	# clean free
 	try:
