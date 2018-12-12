@@ -1,103 +1,116 @@
+import random
 
 
-class Sommet():
-	id = 0
-	arrete = []
-	dominant = False
-	domine = False
-	def __init__(self, id):
-		self.id = int(id)
-
-	def addArrete(self, sommet):
-		self.arrete.append(sommet)
-
-	def markDominant(self):
-		self.dominant = True
-		self.domine = True
-		for som in self.arrete:
-			som.domine = True
-
-	def __str__(self):
-		return str(self.id) + ' => ' + ', '.join([str(e.id) for e in self.arrete]) + ';'
-
-	def __repr__(self):
-		return str(self.id) + ' => ' + ', '.join([str(e.id) for e in self.arrete]) + ';'
-
-# Send back False if at least one is not domine
-def checkDomine(graph):
-	for elem in graph:
-		if elem.domine == False:
-			return False
-	return True
-
-def listDominant(base):
-	final = []
-	for elem in base:
-		if elem.dominant:
-			final.append(elem)
-	return final
-		
-def initGraph(nbArr, graph):
+def initGraph(nbArr):
+	graph = {}
 	# create sommet + init list
 	for _ in range(nbArr):
-		print(graph)
-		print('========== ITER ==========')
+		
 		(A,B) = tuple(int(j) for j in input().split(' '))
-		somA = graph[A]
-		somB = graph[B]
-		print(somA)
-		print(somB)
-		if somA == 0:
-			somA = Sommet(A)
-			graph[A] = somA
-			print('somA')
-			print(somA)
-		if somB == 0:
-			somB = Sommet(B)
-			graph[B] = somB
-			print('somB')
-			print(somB)
+		
+		somA = graph.get(A)
+		somB = graph.get(B)
 
-		somA.addArrete(somB)
-		somB.addArrete(somA)
+		if somA == None:
+			graph[A] = [B]
+		else:
+			somA.append(B)
 
-graph = []
+		if somB == None:
+			graph[B] = [A]
+		else:
+			somB.append(A)
+
+	return graph
+
+def process(free, graph, final):
+	lowest = None
+	low = []
+	for key, value in graph.items():
+		length = len(value)
+		if lowest == None or length < lowest:
+			low = [key]
+			lowest = length
+		elif length == lowest:
+			low.append(key)
+
+	lowLen = len(low)
+
+	randIndex = random.randrange(len(low))
+	weak = low[randIndex]
+	
+	neighbours = graph.get(weak)
+
+	highest = None
+	high = []
+	for n in neighbours:
+		elem = graph[n]
+		length = len(elem)
+		if highest == None or length > highest:
+			high = [n]
+			highest = length
+		elif length == highest:
+			high.append(n)
+
+	highLen = len(high)
+	strong = weak
+	if highLen > 0:
+		randIndex = random.randrange(len(high))
+		strong = high[randIndex]
+
+	final.append(strong)
+
+	dominates = graph.pop(strong)
+
+	# clean graph
+	for value in graph.values():
+		try:
+			value.remove(strong)
+		except ValueError:
+			pass
+		for elem in dominates:
+			try:
+				value.remove(elem)
+			except ValueError:
+				pass
+
+	for elem in dominates:
+		try:
+			graph.pop(elem)
+			#value.remove(elem)
+		except ValueError:
+			pass
+			
+	# clean free
+	try:
+		free.remove(strong)
+	except ValueError:
+		pass
+	
+	for elem in dominates:
+		try:
+			free.remove(elem)
+		except ValueError:
+			pass
+		
+
 
 nbSommet = int(input())
 nbArr = int(input())
 
-# Init empty list
-for _ in range(nbSommet):
-	graph.append()
+graph = initGraph(nbArr)
 
-initGraph(nbArr, graph)
+free = []
 
-# for elem in graph:
-# 	print('hi')
-# 	print(elem.id)
-# 	print(len(elem.arrete))
-# 	[print(e.id) for e in elem.arrete]
-# 	print('=====')
-# 	[print(e.id) for e in elem.arrete]
-# 	print('=====')
+# Init list of free point
+for key in graph.keys():
+	free.append(key)
 
-while not checkDomine(graph):
-	arrMax = 0
-	for elem in graph:
-		if elem.dominant: continue
-		if len(elem.arrete) > arrMax:
-			arrMax = len(elem.arrete)
+final = []
 
-	for elem in graph:
-		if elem.dominant: continue
-		if len(elem.arrete) == arrMax:
-			elem.markDominant()
-
-final = listDominant(graph)
-print(str(len(final)))
-[print(e.id) for e in final]
+while free:
+	process(free, graph, final)
 
 
-
-
-
+print(len(final))
+[print(e) for e in final]
