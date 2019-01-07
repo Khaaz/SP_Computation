@@ -52,6 +52,7 @@ def sortByVector(list, vector):
 	list.sort(key = lambda p: math.cos(vector) * p.x + math.sin(vector) * p.y)
 
 # get a result sample according to one vector
+# Greedy
 def optiGraph(base, result):
 	while base:
 		cur = base[0]
@@ -66,7 +67,7 @@ def optiGraph(base, result):
 
 def localSearch(base, final, near, r):
 	result = final[:]
-	notFinal = list(set(base) - set(final))
+	notFinal = [ x for x in base if x not in final ]
 	randIndex = random.randrange(len(notFinal))
 	p = notFinal[randIndex]
 	
@@ -90,7 +91,7 @@ def localSearch(base, final, near, r):
 				if n.dist(e) <= r:
 					canAdd = False
 					break
-			
+
 			if canAdd:
 				addedOne = True
 				result.append(n)
@@ -98,17 +99,6 @@ def localSearch(base, final, near, r):
 		if not addedOne:
 			result.append(elem)
 
-	# Add p if possible
-	# NOT NEEDED
-	# nbours = near[p]
-	# canAdd = True
-	# for e in result:
-	# 	for n in nbours:
-	# 		if e == n:
-	# 			canAdd = False
-	# if canAdd:
-	# 	result.append(p)
-	
 	return result
 
 # Use a grid to get near points
