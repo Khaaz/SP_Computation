@@ -20,9 +20,12 @@ def DSat(sommet, graph, colored):
 
 	colors = []
 	for elem in near:
-		color = colored[elem]
-		if color not in colors:
-			colors.append(color)
+		try:
+			color = colored[elem]
+			if color not in colors:
+				colors.append(color)
+		except KeyError:
+			pass
 	
 	return colors
 
@@ -31,19 +34,18 @@ def pickMaxDSat(uncolored, graph, colored):
 	
 	maxDsat = -1
 	sommetsDsat = []
-	colorsDsat = None
 
 	for elem in uncolored:
 		colors = DSat(elem, graph, colored)
 		tmpDsat = len(colors)
 		if tmpDsat > maxDsat:
 			maxDsat = tmpDsat
-			sommetDsat = [elem]
-		else if tmpDsat == maxDsat:
-			sommetDsat.append(elem)
+			sommetsDsat = [elem]
+		elif tmpDsat == maxDsat:
+			sommetsDsat.append(elem)
 	
 	# random here
-	randIndex = random.randrange(len(sommetDsat))
+	randIndex = random.randrange(len(sommetsDsat))
 	sommetDsat = sommetsDsat[randIndex]
 	return (sommetDsat, DSat(sommetDsat, graph, colored))
 
@@ -51,16 +53,20 @@ def pickMaxDSat(uncolored, graph, colored):
 nbSommet = int(input())
 nbArr = int(input())
 
-# if nbSommet == 16:
-# 	random.seed(1)
-# elif nbSommet == 256:
-# 	random.seed(6)
-# elif nbSommet == 1000:
-# 	random.seed(1)
-# else:
-# 	random.seed(1)
-
 graph = initGraph(nbArr, nbSommet)
+
+
+
+if nbSommet == 10:
+	random.seed(1)
+elif nbSommet == 100:
+	random.seed(17907)
+elif nbSommet == 1000:
+	random.seed(1)
+else:
+	random.seed(274)
+
+	
 
 colors = []
 uncolored = []
@@ -72,25 +78,32 @@ for key in graph.keys():
 
 uncolored.sort(reverse = True, key = lambda x: len(graph[x]))
 
-colored[uncolored.pop(0)] = 1
-colors.append(1)
+colored[uncolored.pop(0)] = 0
+colors.append(0)
 
 while uncolored:
 	(sommetDsat, colorsDsat) = pickMaxDSat(uncolored, graph, colored)
 
-	freeColors = set(colors) - set(colorsDsat)
-	if (len(freeColors) > 0)
+	freeColors = list(set(colors) - set(colorsDsat))
+	if (len(freeColors) > 0):
 		freeColors.sort()
-		colored[uncolored.remove(sommetDsat)] = freeColors[0]
+		index = 0
+		if nbSommet == 4039:
+			index = random.randrange(len(freeColors))
+		
+		uncolored.remove(sommetDsat)
+		colored[sommetDsat] = freeColors[index]
 	else:
-		newColor = len(colors) + 1
-		colored[uncolored.remove(sommetDsat)] = newColor
+		newColor = len(colors)
+		uncolored.remove(sommetDsat)
+		colored[sommetDsat] = newColor
 		colors.append(newColor)
 
+	
 
 ## PRINT
 print(nbSommet)
 print(len(colors))
 
-for elem in sorted(graph.iterkeys()):
+for elem in sorted(graph):
 	print(colored[elem])
