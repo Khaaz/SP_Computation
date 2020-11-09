@@ -1,4 +1,4 @@
-# Modelisation [SP]
+# Computation [SP]
 
 + **Category**: School Project
 + **Status**: Discontinued
